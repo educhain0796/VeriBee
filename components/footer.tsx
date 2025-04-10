@@ -23,9 +23,9 @@ export function Footer() {
           >
             <Link href="/" className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-purple-800 flex items-center justify-center">
-                <span className="text-white font-bold">🐝</span>
+              <span className="text-white font-bold text-xl relative z-10">V</span>
               </div>
-              <span className="ml-2 text-white font-bold text-xl">VeriBee</span>
+              <span className="ml-1 text-white font-bold text-xl">eriBee</span>
             </Link>
             <p className="mt-4 text-white/60">
               Revolutionizing research data collection with AI-powered verification and token incentives.

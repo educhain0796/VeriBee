@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import { Shield, Database, BarChart3, Users, Zap, Award, BellRing, Filter, Coins } from "lucide-react"
+import Link from "next/link"
 
 export function Features() {
   const ref = useRef(null)
@@ -209,7 +210,9 @@ export function Features() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
+            <Link href="https://veribee.gitbook.io/veribee" className="flex items-center">
             View Documentation
+            </Link>
           </motion.a>
         </motion.div>
       </div>

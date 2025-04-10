@@ -63,42 +63,106 @@ export function VideoDemo(): JSX.Element {
   }
 
   return (
-    <div className="w-full aspect-[16/9] bg-gradient-to-b from-black to-violet-950/20 rounded-lg overflow-hidden border border-violet-800/30 relative group">
-      {/* Website interface animation directly embedded in the main view */}
-      <div className="w-full h-full relative">
-        <div className="absolute inset-0">
-          <WebsiteDemo />
-        </div>
-
-        {/* Video controls overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="flex items-center mb-2">
-            <button
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors mr-4"
-              onClick={togglePlay}
-            >
-              {isPlaying ? (
-                <div className="w-3 h-8 flex">
-                  <div className="w-1 h-full bg-white mr-1"></div>
-                  <div className="w-1 h-full bg-white"></div>
-                </div>
-              ) : (
-                <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[16px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
-              )}
-            </button>
-
-            <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden mx-4">
-              <div className="h-full bg-violet-600" style={{ width: `${progress}%` }}></div>
-            </div>
-
-            <button
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors ml-4"
-              onClick={toggleFullscreen}
-            >
-              <div className="w-4 h-4 border-2 border-white"></div>
-            </button>
+    <div className="relative">
+      {/* Ambient background elements */}
+      <div className="absolute -inset-12 -z-10 bg-black rounded-3xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600 rounded-full filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-800 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+            <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-purple-700 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+          </div>
+          
+          {/* Particle effect */}
+          <div className="absolute inset-0 opacity-20">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full"
+                initial={{ 
+                  x: Math.random() * 100 + "%", 
+                  y: Math.random() * 100 + "%", 
+                  opacity: Math.random() * 0.5 + 0.3 
+                }}
+                animate={{ 
+                  x: Math.random() * 100 + "%", 
+                  y: Math.random() * 100 + "%",
+                  opacity: [0.3, 0.8, 0.3]
+                }}
+                transition={{ 
+                  duration: Math.random() * 20 + 15, 
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Grid lines */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40">
+            <div className="absolute inset-0" style={{ 
+              backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
+              backgroundSize: "40px 40px" 
+            }}></div>
           </div>
         </div>
+      </div>
+      
+      {/* Main video container with glow effect */}
+      <div className="w-full aspect-[16/9] bg-gradient-to-b from-black to-violet-950/20 rounded-lg overflow-hidden border border-violet-800/30 relative group shadow-2xl shadow-violet-900/30">
+        {/* Glass effect frame */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+        
+        {/* Website interface animation directly embedded in the main view */}
+        <div className="w-full h-full relative">
+          <div className="absolute inset-0">
+            <WebsiteDemo />
+          </div>
+
+          {/* Subtle pulsing glow when playing */}
+          {isPlaying && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute -inset-1 bg-violet-600/10 rounded-lg animate-pulse" style={{ animationDuration: "4s" }}></div>
+            </div>
+          )}
+
+          {/* Video controls overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="flex items-center mb-2">
+              <button
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors mr-4 border border-white/10"
+                onClick={togglePlay}
+              >
+                {isPlaying ? (
+                  <div className="w-3 h-8 flex">
+                    <div className="w-1 h-full bg-white mr-1"></div>
+                    <div className="w-1 h-full bg-white"></div>
+                  </div>
+                ) : (
+                  <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[16px] border-l-white border-b-[8px] border-b-transparent ml-1"></div>
+                )}
+              </button>
+
+              <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden mx-4">
+                <div className="h-full bg-violet-600" style={{ width: `${progress}%` }}></div>
+              </div>
+
+              <button
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors ml-4 border border-white/10"
+                onClick={toggleFullscreen}
+              >
+                <div className="w-4 h-4 border-2 border-white"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Video title and description */}
+      <div className="mt-4 px-2">
+        <h3 className="text-lg font-medium text-white">VeriBee Platform Demo</h3>
+        <p className="text-sm text-violet-300/70">Experience our research data collection platform</p>
       </div>
     </div>
   )

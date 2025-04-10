@@ -7,9 +7,20 @@ import { Button } from "@/components/ui/button"
 import { FloatingElements } from "@/components/floating-elements"
 import { motion } from "framer-motion"
 import { CheckCircle, ChevronRight, Clock, Coins } from "lucide-react"
+import { StudyFormModal } from "@/components/ui/study-form-modal"
+import { DailyCoinsClaimContainer } from "@/components/daily-coins-claim"
 
 export default function ParticipantPage() {
   const [loading, setLoading] = useState(true)
+  const [activeStudy, setActiveStudy] = useState<{
+    title: string
+    description: string
+    isOpen: boolean
+  }>({
+    title: "",
+    description: "",
+    isOpen: false,
+  })
 
   useEffect(() => {
     // Simulate loading
@@ -19,6 +30,21 @@ export default function ParticipantPage() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  const handleParticipateClick = (title: string, description: string) => {
+    setActiveStudy({
+      title,
+      description,
+      isOpen: true,
+    })
+  }
+
+  const handleCloseModal = () => {
+    setActiveStudy({
+      ...activeStudy,
+      isOpen: false,
+    })
+  }
 
   if (loading) {
     return <LoadingScreen text="Loading Participant Dashboard" />
@@ -35,7 +61,12 @@ export default function ParticipantPage() {
       <div className="relative z-10">
         <Navbar />
 
-        <main className="pt-28 pb-20">
+        {/* Daily Coins Claim Container */}
+        <div className="pt-32">
+          <DailyCoinsClaimContainer />
+        </div>
+
+        <main className="pt-4 pb-20">
           <div className="container mx-auto px-4">
             <motion.div
               className="mb-12"
@@ -43,11 +74,11 @@ export default function ParticipantPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="text-4xl font-bold text-white mb-4">Participant Dashboard</h1>
+              {/* <h1 className="text-4xl font-bold text-white mb-4">Participant Dashboard</h1>
               <p className="text-white/70 max-w-3xl">
                 Welcome to your participant dashboard. Browse available studies, submit responses, and earn tokens for
                 your valuable feedback.
-              </p>
+              </p> */}
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
@@ -57,6 +88,12 @@ export default function ParticipantPage() {
                 time="10 minutes"
                 tokens={30}
                 tags={["Shopping", "Consumer", "Preferences"]}
+                onParticipate={() =>
+                  handleParticipateClick(
+                    "Consumer Behavior Survey",
+                    "Share your shopping habits and preferences to help improve consumer experiences.",
+                  )
+                }
               />
 
               <StudyCard
@@ -65,6 +102,12 @@ export default function ParticipantPage() {
                 time="15 minutes"
                 tokens={45}
                 tags={["Health", "Wellness", "Lifestyle"]}
+                onParticipate={() =>
+                  handleParticipateClick(
+                    "Health & Wellness Study",
+                    "Provide insights about your health routines and wellness practices.",
+                  )
+                }
               />
 
               <StudyCard
@@ -73,6 +116,12 @@ export default function ParticipantPage() {
                 time="12 minutes"
                 tokens={35}
                 tags={["Technology", "Digital", "Devices"]}
+                onParticipate={() =>
+                  handleParticipateClick(
+                    "Technology Usage Survey",
+                    "Share how you use technology in your daily life and work.",
+                  )
+                }
               />
             </div>
 
@@ -100,6 +149,14 @@ export default function ParticipantPage() {
 
         <Footer />
       </div>
+
+      {/* Study Form Modal */}
+      <StudyFormModal
+        isOpen={activeStudy.isOpen}
+        onClose={handleCloseModal}
+        studyTitle={activeStudy.title}
+        studyDescription={activeStudy.description}
+      />
     </div>
   )
 }
@@ -110,12 +167,14 @@ function StudyCard({
   time,
   tokens,
   tags,
+  onParticipate,
 }: {
   title: string
   description: string
   time: string
   tokens: number
   tags: string[]
+  onParticipate: () => void
 }) {
   return (
     <motion.div
@@ -149,7 +208,10 @@ function StudyCard({
         ))}
       </div>
 
-      <Button className="w-full bg-gradient-to-r from-blue-600 to-violet-800 hover:opacity-90 text-white rounded-full">
+      <Button
+        className="w-full bg-gradient-to-r from-blue-600 to-violet-800 hover:opacity-90 text-white rounded-full"
+        onClick={onParticipate}
+      >
         Participate <ChevronRight className="ml-2 h-4 w-4" />
       </Button>
     </motion.div>
@@ -213,43 +275,37 @@ function DashboardCard({
 function LoadingScreen({ text }: { text: string }) {
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
-      <motion.div
-        className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-violet-800 flex items-center justify-center relative"
-        animate={{
-          boxShadow: [
-            "0 0 0 rgba(96, 165, 250, 0.4)",
-            "0 0 20px rgba(96, 165, 250, 0.6)",
-            "0 0 0 rgba(96, 165, 250, 0.4)",
-          ],
-        }}
-        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-      >
+      <div className="w-16 h-16 mb-8 relative">
         <motion.div
-          className="w-16 h-16 rounded-full border-4 border-white border-t-transparent"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+          className="absolute inset-0 rounded-full border-4 border-violet-600/20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-white font-bold text-2xl">V</span>
-        </div>
-      </motion.div>
-
+        <motion.div
+          className="absolute inset-0 rounded-full border-t-4 border-violet-600"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
       <motion.h2
-        className="mt-8 text-2xl font-bold text-white"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+        className="text-xl font-medium text-white"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
       >
         {text}
       </motion.h2>
-
-      <div className="mt-8 w-64 h-2 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-blue-600 to-violet-800"
-          initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 2, ease: "easeInOut" }}
-        />
-      </div>
+      <motion.div
+        className="flex space-x-2 mt-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <div className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" style={{ animationDelay: "0ms" }} />
+        <div className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" style={{ animationDelay: "300ms" }} />
+        <div className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" style={{ animationDelay: "600ms" }} />
+      </motion.div>
     </div>
   )
 }
