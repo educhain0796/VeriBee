@@ -10,24 +10,43 @@ import contractAbi from "@/contractInfo/abi.json"
 
 
 export function DailyCoinsClaimContainer() {
-  const [claimed, setClaimed] = useState(false)
-  const [showAnimation, setShowAnimation] = useState(false)
-  const [timeLeft, setTimeLeft] = useState("23:59:59")
-  const [coinsAmount] = useState(Math.floor(Math.random() * 30) + 20) // Random between 20-50
+  const [claimed, setClaimed] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [coinsAmount] = useState(Math.floor(Math.random() * 30) + 20); // Random between 20-50
 
-  // Simulate countdown timer
+  // Simulate proper countdown timer
   useEffect(() => {
+    // Set the initial target time (24 hours from now)
+    const targetTime = new Date();
+    targetTime.setHours(targetTime.getHours() + 24);
+    
     const timer = setInterval(() => {
-      const hours = Math.floor(Math.random() * 24)
-      const minutes = Math.floor(Math.random() * 60)
-      const seconds = Math.floor(Math.random() * 60)
+      const now = new Date();
+      const difference = targetTime.getTime() - now.getTime();
+      
+      // If countdown is finished
+      if (difference <= 0) {
+        clearInterval(timer);
+        setTimeLeft("00:00:00");
+        setClaimed(false); // Allow claiming again
+        return;
+      }
+      
+      // Calculate hours, minutes, seconds
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / (1000 * 60)) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+      
+      // Format and update the time left
       setTimeLeft(
-        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-      )
-    }, 1000)
+        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      );
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, [claimed]); // Reset timer when claimed state changes
+
 
   const withdraw = async () => {
     console.log("====================")
