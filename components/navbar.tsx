@@ -235,7 +235,7 @@ export function Navbar() {
 
               <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
                 <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-0 rounded-full px-5">
-                  {authState.isAuthenticated ? <p>{JSON.stringify(ocAuth.getAuthState().OCId)}</p> : <LoginButton />}
+                  {authState.isAuthenticated ? <p>{JSON.stringify(ocAuth.getAuthState().OCId)} 🎉</p> : <LoginButton />}
                 </Button>
               </motion.div>
 

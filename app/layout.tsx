@@ -14,7 +14,7 @@ export const metadata = {
 };
 
 const opts = {
-  redirectUri: 'http://localhost:3000/redirect', // Adjust this URL as needed
+  redirectUri: 'https://veribee.vercel.app/redirect', // Adjust this URL as needed
   referralCode: 'PARTNER6', // Partner code
 };
 
