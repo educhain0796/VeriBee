@@ -4,6 +4,10 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Coins, Clock, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BrowserProvider, ethers } from 'ethers';
+import contractAddress from "@/contractInfo/contractAddress.json"
+import contractAbi from "@/contractInfo/abi.json"
+
 
 export function DailyCoinsClaimContainer() {
   const [claimed, setClaimed] = useState(false)
@@ -25,7 +29,25 @@ export function DailyCoinsClaimContainer() {
     return () => clearInterval(timer)
   }, [])
 
-  const handleClaim = () => {
+  const withdraw = async () => {
+    console.log("====================")
+    const { abi } = contractAbi;
+    const amount = coinsAmount;
+
+    if (window.ethereum !== undefined) {
+
+      const provider = new BrowserProvider(window.ethereum);
+
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      const bounceContract = new ethers.Contract(contractAddress.address, abi, signer)
+
+      await (await bounceContract.mint(address, ethers.parseUnits(amount.toString(), 18))).wait();
+    }
+  }
+
+  const handleClaim = async () => {
+    await withdraw()
     setClaimed(true)
     setShowAnimation(true)
 
