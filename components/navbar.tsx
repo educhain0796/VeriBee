@@ -2,21 +2,147 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Wallet } from "lucide-react"
 import LoginButton from "./LoginButton"
 import { useOCAuth } from "@opencampus/ocid-connect-js"
 
+// Define types for MetaMask window object
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      isMetaMask?: boolean;
+      on: (event: string, callback: (...args: any[]) => void) => void;
+      removeListener: (event: string, callback: (...args: any[]) => void) => void;
+    };
+  }
+}
+
+// Define interface for wallet state
+interface WalletState {
+  isConnected: boolean;
+  account: string | null;
+  chainId: string | null;
+}
+
 export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const [walletState, setWalletState] = useState<WalletState>({
+    isConnected: false,
+    account: null,
+    chainId: null,
+  })
 
   const { authState, ocAuth } = useOCAuth() as {
     authState: { isLoading: boolean; isAuthenticated: boolean; error?: { message: string } }
     ocAuth: { getAuthState: () => { OCId: string } }
   }
+
+  // Check if MetaMask is installed
+  const isMetaMaskInstalled = (): boolean => {
+    return typeof window !== 'undefined' && window.ethereum?.isMetaMask === true;
+  }
+
+  // Handle connect wallet button click
+  const connectWallet = async (): Promise<void> => {
+    if (!isMetaMaskInstalled()) {
+      alert("MetaMask is not installed. Please install MetaMask to continue.");
+      window.open("https://metamask.io/download/", "_blank");
+      return;
+    }
+
+    try {
+      // Request account access - this triggers the MetaMask popup
+      const accounts: string[] = await window.ethereum!.request({
+        method: "eth_requestAccounts"
+      });
+      
+      // Get the connected chain ID
+      const chainId: string = await window.ethereum!.request({
+        method: "eth_chainId"
+      });
+
+      setWalletState({
+        isConnected: true,
+        account: accounts[0],
+        chainId
+      });
+    } catch (error) {
+      console.error("Error connecting to MetaMask:", error);
+    }
+  };
+
+  // Handle account changes
+  const handleAccountsChanged = (accounts: string[]): void => {
+    if (accounts.length === 0) {
+      // User disconnected their wallet
+      setWalletState({
+        isConnected: false,
+        account: null,
+        chainId: walletState.chainId
+      });
+    } else {
+      // Account changed
+      setWalletState({
+        ...walletState,
+        isConnected: true,
+        account: accounts[0]
+      });
+    }
+  };
+
+  // Handle chain changes
+  const handleChainChanged = (chainId: string): void => {
+    setWalletState({
+      ...walletState,
+      chainId
+    });
+    // Reload the page when the chain changes as recommended by MetaMask
+    window.location.reload();
+  };
+
+  // Check if wallet is already connected on component mount, but don't show popup
+  useEffect(() => {
+    if (isMetaMaskInstalled()) {
+      // Check if already connected without triggering popup
+      window.ethereum!.request({ method: "eth_accounts" })
+        .then((accounts: string[]) => {
+          if (accounts.length > 0) {
+            window.ethereum!.request({ method: "eth_chainId" })
+              .then((chainId: string) => {
+                setWalletState({
+                  isConnected: true,
+                  account: accounts[0],
+                  chainId
+                });
+              });
+          }
+        })
+        .catch((err: Error) => console.error(err));
+
+      // Set up listeners
+      window.ethereum!.on("accountsChanged", handleAccountsChanged);
+      window.ethereum!.on("chainChanged", handleChainChanged);
+    }
+
+    // Clean up listeners
+    return () => {
+      if (isMetaMaskInstalled()) {
+        window.ethereum!.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum!.removeListener("chainChanged", handleChainChanged);
+      }
+    };
+  }, []);
+
+  // Display wallet address in shortened form
+  const shortenAddress = (address: string | null): string => {
+    if (!address) return "";
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
 
   if (!authState) {
     return <div>Loading authentication...</div>
@@ -33,7 +159,7 @@ export function Navbar() {
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center">
       <motion.div
-        className="relative w-auto max-w-4xl" // Extended from max-w-3xl to max-w-4xl
+        className="relative w-auto max-w-5xl" // Increased from max-w-4xl to max-w-5xl
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 2.7, duration: 0.5 }}
@@ -105,12 +231,24 @@ export function Navbar() {
                   Faucet
                 </Button>
                 </Link>
-                
               </motion.div>
 
               <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
                 <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-0 rounded-full px-5">
                   {authState.isAuthenticated ? <p>{JSON.stringify(ocAuth.getAuthState().OCId)}</p> : <LoginButton />}
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white border-0 rounded-full px-5"
+                  onClick={connectWallet}
+                >
+                  <Wallet size={16} />
+                  {walletState.isConnected 
+                    ? shortenAddress(walletState.account)
+                    : 'Connect Wallet'}
                 </Button>
               </motion.div>
             </div>
@@ -150,7 +288,16 @@ export function Navbar() {
                   Faucet
                 </Button>
                 <Button className="bg-violet-600 hover:bg-violet-700 text-white border-0 rounded-full">
-                  OCID Login
+                  {authState.isAuthenticated ? <p>{JSON.stringify(ocAuth.getAuthState().OCId)}</p> : <LoginButton />}
+                </Button>
+                <Button 
+                  className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white border-0 rounded-full"
+                  onClick={connectWallet}
+                >
+                  <Wallet size={16} />
+                  {walletState.isConnected 
+                    ? shortenAddress(walletState.account)
+                    : 'Connect Wallet'}
                 </Button>
               </div>
             </motion.div>
